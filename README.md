@@ -33,12 +33,41 @@ Factory akun **Mistral AI** + panen **API key** (`mstrl_`) otomatis.
 
 ## Free tier
 
-Model yang **bisa dipakai** dengan key farm (gratis):
-- `ministral-8b-latest`
-- `open-mistral-nemo`
-- `mistral-tiny`
+Model yang **bisa dipakai** dengan key farm (gratis) — terverifikasi:
 
-Model besar (`mistral-large-latest`) → `tier_not_allowed`.
+| Model | Catatan |
+|---|---|
+| `ministral-8b-latest` | **paling stabil** (rekomendasi) |
+| `ministral-3b-latest` | terkecil, cepat |
+| `ministral-14b-latest` | terbesar di keluarga ministral |
+| `open-mistral-nemo` | 12B |
+| `mistral-tiny` | alias lama |
+| `codestral-latest` | khusus coding |
+| `mistral-code-latest` | coding |
+| `voxtral-small-latest` | audio/speech |
+
+Semua support **chat + tools**; ministral juga **vision + fine-tune**.
+
+**Rate-limit free tier** (bisa tapi ter-throttle): `mistral-small-latest`,
+`mistral-medium-latest`, `magistral-small-latest`, `mistral-vibe-cli-fast`.
+
+**Butuh tier berbayar / khusus**: `mistral-large-latest` (`tier_not_allowed`),
+`labs-leanstral-*` (admin opt-in), `mistral-ocr-*` (bukan chat endpoint).
+
+### Kategori lengkap (46 model)
+
+| Keluarga | Model |
+|---|---|
+| Ministral (edge) | 3b, 8b, 14b (latest + 2512) |
+| Small/Medium | small-latest, medium-latest, medium-3, medium-3.5, medium-2604 |
+| Magistral (reasoning) | magistral-small-latest, magistral-medium-latest |
+| Codestral (kode) | codestral-latest, codestral-2508, mistral-code-latest, mistral-code-fim |
+| Voxtral (audio) | small, mini, mini-realtime, mini-transcribe-realtime, mini-tts |
+| Vibe CLI | cli-latest, cli-fast, cli-with-tools |
+| OCR | ocr-2512, ocr-3, ocr-3-0, ocr-4, ocr-4-0, ocr-4-1 |
+| Embedding | mistral-embed, codestral-embed |
+| Moderation | mistral-moderation-2603 |
+| Labs | labs-leanstral-1-5, -1-5-1 |
 
 ## Instalasi
 
