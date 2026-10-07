@@ -106,16 +106,15 @@ def cmd_sync():
     if not accts:
         C.print("[yellow]Belum ada akun.[/]")
         return
-    n = 0
-    for a in accts:
-        try:
-            router9.add_openai_provider(
-                name=f"mstrlfarm-{a['email'].split('@')[0]}",
-                base_url=mistral.API, api_key=a["apikey"])
-            n += 1
-        except Exception as e:
-            C.print(f"[yellow]  gagal {a['email']}: {e}[/]")
-    C.print(f"[bold]{n}/{len(accts)} tersinkron ke 9router[/]")
+    accounts = [{"email": a["email"], "key": a["apikey"]} for a in accts]
+    C.print(f"[cyan]Sync {len(accounts)} key ke 9router (node mstrlfarm)...[/]")
+    r = router9.ingest_gateway(name="mstrlfarm", prefix="mstrlfarm",
+                               base_url=mistral.API, accounts=accounts)
+    if r.get("ok"):
+        C.print(f"[bold]{r['added']}/{r['total']} ditambahkan, "
+                f"{r['valid']} valid (node {r['node']})[/]")
+    else:
+        C.print(f"[red]gagal: {r.get('error')}[/]")
 
 
 def main():
