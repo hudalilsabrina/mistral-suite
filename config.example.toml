@@ -1,0 +1,16 @@
+# Mistral Suite - contoh konfigurasi
+# Salin ke config.toml dan sesuaikan.
+# CATATAN: endpoint tempmail asli TIDAK disertakan (pakai instance sendiri).
+
+[api]
+# Base URL API temp-mail (self-hosted). Ganti dengan instance Anda.
+# Contoh format: https://mail.example.com/api
+tempmail_base = "http://localhost:8080/api"
+
+[router]
+# 9router (opsional)
+url = "http://127.0.0.1:20127"
+password = ""
+
+[general]
+headless = false
