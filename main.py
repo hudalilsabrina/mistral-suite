@@ -11,6 +11,7 @@ Command:
 import argparse
 import json
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -100,6 +101,41 @@ def cmd_probe():
         C.print(f"[red]API bermasalah: {e}[/]")
 
 
+def cmd_retry_mint():
+    """Coba mint ulang key untuk akun yang sudah terverifikasi tapi belum punya key."""
+    accts = _load_accounts()
+    pending = [a for a in accts if not a["apikey"] or a.get("status") == "VERIFIED_NOKEY"]
+    if not pending:
+        C.print("[green]Tidak ada akun pending.[/]")
+        return
+    C.print(f"[cyan]Retry mint {len(pending)} akun...[/]")
+    ok = 0
+    for i, a in enumerate(pending, 1):
+        C.print(f"[cyan]=== {i}/{len(pending)}: {a['email']} ===[/]")
+        key, info = mistral.mint_key(a["email"], a["password"], "farm")
+        if key:
+            ok += 1
+            C.print(f"[green]  KEY: {key[:16]}...[/]")
+            _update_account(a["email"], key, "KEYED")
+        else:
+            C.print(f"[yellow]  gagal: {info[:100]}[/]")
+        time.sleep(8)
+    C.print(f"\n[bold]Berhasil mint: {ok}/{len(pending)}[/]")
+
+
+def _update_account(email, key, status):
+    """Update baris akun (ganti key + status)."""
+    lines = ACCOUNTS.read_text().splitlines()
+    out = []
+    for l in lines:
+        parts = l.split(":")
+        if parts and parts[0] == email:
+            out.append(f"{parts[0]}:{parts[1]}:{key}:{status}")
+        else:
+            out.append(l)
+    ACCOUNTS.write_text("\n".join(out) + "\n")
+
+
 def cmd_sync():
     from src import router9
     accts = _load_accounts()
@@ -125,6 +161,7 @@ def main():
     sub.add_parser("report")
     sub.add_parser("sync")
     sub.add_parser("probe")
+    sub.add_parser("retry-mint")
     a = ap.parse_args()
     if a.cmd == "harvest":
         cmd_harvest(a.n)
@@ -136,6 +173,8 @@ def main():
         cmd_sync()
     elif a.cmd == "probe":
         cmd_probe()
+    elif a.cmd == "retry-mint":
+        cmd_retry_mint()
     else:
         ap.print_help()
 

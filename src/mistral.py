@@ -126,8 +126,27 @@ def submit_verify(st: str, flow: str, code: str) -> str:
         return f"HTTP{s}"
 
 
-def mint_key(email: str, password: str, key_name: str = "farm") -> Tuple[Optional[str], str]:
-    """Login browser flow -> csrftoken -> mint key. Return (key, info)."""
+def mint_key(email: str, password: str, key_name: str = "farm",
+             max_retry: int = 4) -> Tuple[Optional[str], str]:
+    """Login browser flow -> csrftoken -> mint key. Retry otomatis saat 429."""
+    import time as _t
+    last = ""
+    for attempt in range(1, max_retry + 1):
+        key, info = _mint_key_once(email, password, key_name)
+        if key:
+            return key, info
+        last = info
+        if "429" in str(info):
+            wait = 20 * attempt
+            if attempt < max_retry:
+                _t.sleep(wait)
+            continue
+        break
+    return None, last
+
+
+def _mint_key_once(email: str, password: str, key_name: str = "farm") -> Tuple[Optional[str], str]:
+    """Satu percobaan login + mint. Return (key, info)."""
     cj = hcj.CookieJar()
 
     class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -161,12 +180,16 @@ def mint_key(email: str, password: str, key_name: str = "farm") -> Tuple[Optiona
 
     s, j2 = post(flow["ui"]["action"], {"csrf_token": csrf1, "identifier": email,
                                          "method": "identifier_first"})
+    if s == 429:
+        return None, "429 (login step1)"
     if s not in (200, 400):
         return None, f"login step1 HTTP {s}"
     csrf2 = [n["attributes"].get("value", "") for n in j2["ui"]["nodes"]
              if n["attributes"].get("name") == "csrf_token"][0]
     s, j3 = post(j2["ui"]["action"], {"csrf_token": csrf2, "identifier": email,
                                        "password": password, "method": "password"})
+    if s == 429:
+        return None, "429 (login password)"
     if s != 200:
         return None, f"login password HTTP {s}"
 
@@ -244,8 +267,10 @@ def harvest_mistral(verbose: bool = True) -> Dict[str, Any]:
         _append_account(email, pw, key, "KEYED")
     else:
         out["error"] = f"mint-failed: {info[:120]}"
+        # simpan walau gagal mint -> bisa di-retry (email sudah terverifikasi)
+        _append_account(email, pw, "", "VERIFIED_NOKEY")
         if verbose:
-            C.print(f"[yellow]  mint gagal: {info[:120]}[/]")
+            C.print(f"[yellow]  mint gagal: {info[:120]} (disimpan utk retry)[/]")
     return out
 
 
